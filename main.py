@@ -199,7 +199,7 @@ if __name__ == '__main__':
 
     # Input & Output path
     parser.add_argument('--root_path', type=str, default='/root/dev/Calib/Calibration_study_code/datasets/MC_Calib_stereo_sampled')
-    parser.add_argument('--output_path', type=str, default='MC_Calib_stereo_sampled_results')
+    parser.add_argument('--output_path', type=str, default='results')
 
     # Calibration parameters
     parser.add_argument('--aruco_dict', type=str, default='DICT_6X6_250')
