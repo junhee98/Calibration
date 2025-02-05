@@ -193,22 +193,19 @@ if __name__ == '__main__':
     parser.add_argument('--calibration_version', type=str, default='stereo')
     parser.add_argument('--intrinsics', type=bool, default=False)
 
-    # Input & Output path
-    parser.add_argument('--root_path', type=str, default='/root/dev/Calib/Calibration_study_code/datasets/MC_Calib_stereo_sampled')
-    parser.add_argument('--output_path', type=str, default='MC_Calib_stereo_sampled_results')
-
     # Image prefix & format
     parser.add_argument('--img_prefix', type=str, default='Cam')
     parser.add_argument('--img_format', type=str, default='png')
 
+    # Input & Output path
+    parser.add_argument('--root_path', type=str, default='/root/dev/Calib/Calibration_study_code/datasets/MC_Calib_stereo_sampled')
+    parser.add_argument('--output_path', type=str, default='MC_Calib_stereo_sampled_results')
+
     # Calibration parameters
     parser.add_argument('--aruco_dict', type=str, default='DICT_6X6_250')
-    # parser.add_argument("--board_size", type=parse_tuple, default=(6, 9))
-    # parser.add_argument('--aruco_square', type=float, default=0.083)
-    # parser.add_argument('--aruco_marker', type=float, default=0.062)
-    parser.add_argument("--board_size", type=parse_tuple, default=(5, 5))
-    parser.add_argument('--aruco_square', type=float, default=0.04)
-    parser.add_argument('--aruco_marker', type=float, default=0.03)
+    parser.add_argument("--board_size", type=parse_tuple, default=(6, 9))
+    parser.add_argument('--aruco_square', type=float, default=0.083)
+    parser.add_argument('--aruco_marker', type=float, default=0.062)
     
     args = parser.parse_args()
 
