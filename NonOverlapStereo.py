@@ -325,7 +325,8 @@ class NonOverlapStereoCalib:
             imageSize = self.image_shape,
             R = self.R,
             T = self.T,
-            flags=cv2.CALIB_ZERO_DISPARITY,
+            # flags=cv2.CALIB_ZERO_DISPARITY,
+            flags=0,
             alpha=0
         )
 
@@ -373,8 +374,9 @@ class NonOverlapStereoCalib:
         rectified_y_errors = []
         all_y_errors = []
 
-        projection_errors = []
-        all_projection_errors = []
+        reprojection_errors = []
+        total_points = 0
+        total_reprojection_error = 0
 
         # Visualization Rectified images
         for left_frame, right_frame in zip(self.left_camera.frames, self.right_camera.frames):
@@ -489,12 +491,13 @@ class NonOverlapStereoCalib:
 
         # Projection Common points in left image to right image -- left cam에서 사용한 board를 이 과정을 위해서 사용!
         for left_frame, right_frame in zip(self.left_camera.frames, self.right_camera.frames):
-            if left_frame['state'] != right_frame['state'] and (left_frame['state'] == 'non_corners' or right_frame['state'] == 'non_corners'):
+            # if left_frame['state'] != right_frame['state'] and (left_frame['state'] == 'non_corners' or right_frame['state'] == 'non_corners'):
+            if left_frame['state'] == 'true' and right_frame['state'] == 'true':
                 # Find common points
                 common_ids = np.intersect1d(left_frame['charuco_ids'].flatten(), right_frame['charuco_ids'].flatten())
 
                 if len(common_ids) > 0:
-                    common_objecct_points = []
+                    common_object_points = []
                     common_left_corners = []
                     common_right_corners = []
 
@@ -503,7 +506,7 @@ class NonOverlapStereoCalib:
                         idx_left = np.where(left_frame['charuco_ids'].flatten() == common_id)[0][0]
                         idx_right = np.where(right_frame['charuco_ids'].flatten() == common_id)[0][0]
 
-                        common_objecct_points.append(obj_points)
+                        common_object_points.append(obj_points)
                         common_left_corners.append(left_frame['charuco_corners'][idx_left])
                         common_right_corners.append(right_frame['charuco_corners'][idx_right])
 
@@ -533,28 +536,35 @@ class NonOverlapStereoCalib:
 
                     projected_points = projected_points.reshape(-1, 2)
 
+                    valid_mask = (
+                        (projected_points[:, 0] >= 0) & (projected_points[:, 0] < self.left_camera.image_shape[0]) &
+                        (projected_points[:, 1] >= 0) & (projected_points[:, 1] < self.left_camera.image_shape[1])
+                    )
+
+                    projected_points = projected_points[valid_mask]
+                    common_right_corners = common_right_corners[valid_mask]
+
+                    error = np.linalg.norm(projected_points - common_right_corners, axis=1) ** 2
+                    reprojection_errors.append(np.sqrt(np.sum(error) / len(error))) # Reprojection error for each image
+
+                    # Reprojection error for whole images
+                    total_reprojection_error += np.sum(error)
+                    total_points += len(common_right_corners)
+
                     # visualization
-                    errors_image = []
                     img_right = right_frame['image'].copy()
                     for actual, projected in zip(common_right_corners, projected_points):
+                        cv2.circle(img_right, tuple(actual.astype(int)), 6, (0, 255, 0), -1) # actual detected point --> green
                         cv2.circle(img_right, tuple(projected.astype(int)), 5, (0, 0, 255), -1) # projected point --> red
-                        cv2.circle(img_right, tuple(actual.astype(int)), 5, (0, 255, 0), -1) # actual detected point --> green
                         cv2.line(img_right, tuple(map(int, actual)), tuple(map(int, projected)), (255, 0, 0), 1)
-                        
-                        # calculate error
-                        error = np.mean(np.sqrt(np.sum((projected.reshape(-1, 2) - actual) ** 2, axis=1)))
-                        projection_errors.append(error)
-                        errors_image.append(error)
-                    
-                    all_projection_errors.append(np.mean(errors_image))
                     
                     cv2.imwrite(os.path.join(self.output_path, 'Projection_NonOverlap', right_frame['filename']), img_right)
         
-        mean_reprojection_error = np.mean(projection_errors)
+        mean_reprojection_error = np.sqrt(total_reprojection_error / total_points)
 
         # Visualization Reprojection Error per Image
         plt.figure(figsize=(12, 6))
-        plt.bar(range(len(all_projection_errors)), all_projection_errors, color='blue', alpha=0.7)
+        plt.bar(range(len(reprojection_errors)), reprojection_errors, color='blue', alpha=0.7)
         plt.axhline(mean_reprojection_error, color='r', linestyle='dashed', linewidth=2, label="Mean projection Error")
         plt.title(f"Projection Error per Image ( Mean: {mean_reprojection_error:.4f} pixels )")
         plt.xlabel("Image index")

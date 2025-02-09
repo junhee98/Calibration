@@ -29,10 +29,11 @@ def main(args):
         # Calibration for each camera
         # initialize board
         board = CharucoBoard_6_9_0_26(args.aruco_dict, args.aruco_square, args.aruco_marker)
+        # board = CharucoBoard_6_9_27_53(args.aruco_dict, args.aruco_square, args.aruco_marker)
 
         # calibrate!
         for i in range(1, camera_num+1):
-            
+            i+=1
             camera = Camera(
                 root_path = args.root_path,
                 output_path = args.output_path,
@@ -49,8 +50,9 @@ def main(args):
         # Intrinsic Calibration for each camera
 
         # initialize board
-        # board = CharucoBoard_6_9_0_26(args.aruco_dict, args.aruco_square, args.aruco_marker)
-        board  = CharucoBoard_5_5_144_156(args.aruco_dict, args.aruco_square, args.aruco_marker)
+        board = CharucoBoard_6_9_0_26(args.aruco_dict, args.aruco_square, args.aruco_marker)
+        # board = CharucoBoard_6_9_27_53(args.aruco_dict, args.aruco_square, args.aruco_marker)
+        # board  = CharucoBoard_5_5_144_156(args.aruco_dict, args.aruco_square, args.aruco_marker)
 
         # left camera intrinsic calibration
         left_camera = Camera(
@@ -120,7 +122,8 @@ def main(args):
 
         # initialize board
         board_left = CharucoBoard_6_9_0_26(args.aruco_dict, args.aruco_square, args.aruco_marker)
-        board_right = CharucoBoard_6_9_27_53(args.aruco_dict, args.aruco_square, args.aruco_marker)
+        # board_right = CharucoBoard_6_9_27_53(args.aruco_dict, args.aruco_square, args.aruco_marker)
+        board_right = CharucoBoard_6_9_0_26(args.aruco_dict, args.aruco_square, args.aruco_marker)
 
         # left camera intrinsic calibration
         left_camera = Camera(
@@ -191,15 +194,41 @@ if __name__ == '__main__':
 
     # Calibration version
     parser.add_argument('--calibration_version', type=str, default='stereo')
-    parser.add_argument('--intrinsics', type=bool, default=False)
+    parser.add_argument('--intrinsics', type=bool, default=True)
+    # parser.add_argument('--intrinsics', type=bool, default=True)
 
     # Image prefix & format
     parser.add_argument('--img_prefix', type=str, default='Cam')
     parser.add_argument('--img_format', type=str, default='png')
 
     # Input & Output path
-    parser.add_argument('--root_path', type=str, default='/root/dev/Calib/Calibration_study_code/datasets/MC_Calib_stereo_sampled')
-    parser.add_argument('--output_path', type=str, default='results')
+    # parser.add_argument('--root_path', type=str, default='dataset/calib_1204')
+    # parser.add_argument('--output_path', type=str, default='results/calib_1204')
+
+    # For low-overalp stereo calibration
+    # parser.add_argument('--root_path', type=str, default='dataset/lowoverlap_0106_stereo')
+    # parser.add_argument('--output_path', type=str, default='results/lowoverlap_0106_stereo')
+    
+    # For low-overalp stereo calibration w/ non-overlapping method
+    # parser.add_argument('--root_path', type=str, default='dataset/lowoverlap_0106_stereo')
+    # parser.add_argument('--output_path', type=str, default='results/lowoverlap_0106_stereo_nonoverlap')
+
+
+    # For low-overalp stereo v2 calibration
+    # parser.add_argument('--root_path', type=str, default='dataset/lowoverlap_0106_stereo_v2')
+    # parser.add_argument('--output_path', type=str, default='results/lowoverlap_0106_stereo_v2')
+
+    # 0206 low-overlap stereo calibration
+    # parser.add_argument('--root_path', type=str, default='dataset/calib_0206/0206_lowoverlap/extrinsic')
+    # parser.add_argument('--output_path', type=str, default='results/calib_0206_lowoverlap_stereo_with_nonoverlap')
+
+    # # 0206 stereo calibration
+    # parser.add_argument('--root_path', type=str, default='/root/dev/Calib/Calibration/dataset/0206_v2')
+    # parser.add_argument('--output_path', type=str, default='results/Stereo_calib_0206_v2')
+
+    # 0209 stereo calibration
+    parser.add_argument('--root_path', type=str, default='/root/dev/Calib/Calibration/dataset/0209_ext')
+    parser.add_argument('--output_path', type=str, default='results/Stereo_calib_0209')
 
     # Calibration parameters
     parser.add_argument('--aruco_dict', type=str, default='DICT_6X6_250')

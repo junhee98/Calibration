@@ -152,7 +152,8 @@ class Camera:
             board=self.charuco_board, 
             imageSize=self.image_shape, 
             cameraMatrix=init_K,
-            distCoeffs=init_d
+            distCoeffs=init_d,
+            flags=cv2.CALIB_USE_INTRINSIC_GUESS
         )
 
         if ret:
@@ -251,6 +252,15 @@ class Camera:
             projected_points = projected_points.reshape(-1, 2)
             actual_points = self.intrinsic_all_corners[i].reshape(-1, 2)
 
+            # edge case ( projected point are out of image plane )
+            # valid_mask = (
+            #     (projected_points[:, 0] >= 0) & (projected_points[:, 0] < self.image_shape[0]) &
+            #     (projected_points[:, 1] >= 0) & (projected_points[:, 1] < self.image_shape[1])
+            # )
+
+            # projected_points = projected_points[valid_mask]
+            # actual_points = actual_points[valid_mask]
+
             # Calculate reprojection error
             error = np.linalg.norm(projected_points - actual_points, axis=1) ** 2
             reprojection_errors.append(np.sqrt(np.sum(error) / len(error))) # Reprojection error for each image
@@ -265,7 +275,7 @@ class Camera:
             y_errors.extend(errors_points[:, 1])
 
             for actual, projected in zip(actual_points, projected_points):
-                cv2.circle(image, tuple(map(int, actual)), 5, (0, 255, 0), -1) # actual point -> green
+                cv2.circle(image, tuple(map(int, actual)), 6, (0, 255, 0), -1) # actual point -> green
                 cv2.circle(image, tuple(map(int, projected)), 5, (0, 0, 255), -1) # reprojected point -> red
                 cv2.line(image, tuple(map(int, actual)), tuple(map(int, projected)), (255, 0, 0), 1) # btw actual and reprojected -> blue
             

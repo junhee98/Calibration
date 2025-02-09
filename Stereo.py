@@ -284,7 +284,7 @@ class StereoCalib:
                 # Find common points
                 common_ids = np.intersect1d(left_frame['charuco_ids'].flatten(), right_frame['charuco_ids'].flatten())
 
-                if len(common_ids) > 6:
+                if len(common_ids) > 0:
                     common_object_points = []
                     common_left_corners = []
                     common_right_corners = []
@@ -324,6 +324,14 @@ class StereoCalib:
 
                     projected_points = projected_points.reshape(-1, 2)
 
+                    valid_mask = (
+                        (projected_points[:, 0] >= 0) & (projected_points[:, 0] < self.left_camera.image_shape[0]) &
+                        (projected_points[:, 1] >= 0) & (projected_points[:, 1] < self.left_camera.image_shape[1])
+                    )
+
+                    projected_points = projected_points[valid_mask]
+                    common_right_corners = common_right_corners[valid_mask]
+
                     error = np.linalg.norm(projected_points - common_right_corners, axis=1) ** 2
                     reprojection_errors.append(np.sqrt(np.sum(error) / len(error))) # Reprojection error for each image
 
@@ -334,7 +342,7 @@ class StereoCalib:
                     # visualization
                     img_right = right_frame['image'].copy()
                     for actual, projected in zip(common_right_corners, projected_points):
-                        cv2.circle(img_right, tuple(actual.astype(int)), 5, (0, 255, 0), -1) # actual detected point --> green
+                        cv2.circle(img_right, tuple(actual.astype(int)), 6, (0, 255, 0), -1) # actual detected point --> green
                         cv2.circle(img_right, tuple(projected.astype(int)), 5, (0, 0, 255), -1) # projected point --> red
                         cv2.line(img_right, tuple(map(int, actual)), tuple(map(int, projected)), (255, 0, 0), 1)
                     
